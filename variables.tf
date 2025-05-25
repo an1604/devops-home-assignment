@@ -42,3 +42,9 @@ variable "tags" {
     Project     = "devops-assignment"
   }
 }
+
+variable "aws_profile" {
+  description = "AWS profile name"
+  type        = string
+  default     = "default"
+}
