@@ -1,6 +1,6 @@
 # Elastic IP for NAT Gateway
 resource "aws_eip" "moveo_eip" {
-    vpc = true
+    domain = "vpc"
 
     tags = {
         Name = "${var.environment}-eip"
