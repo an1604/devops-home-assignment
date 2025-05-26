@@ -58,7 +58,7 @@ variable "ec2_instance_name" {
 variable "ssh_pubkey_file" {
   description = "Path to the SSH public key file"
   type        = string
-  default     = "~/.ssh/id_rsa.pub"
+  default     = "C:/ssh_keys/moveo_key.pub"
 }
 
 variable "alb_name" {

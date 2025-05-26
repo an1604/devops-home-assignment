@@ -71,9 +71,10 @@ resource "aws_iam_instance_profile" "moveo_ec2_profile" {
 resource "aws_instance" "moveo_ec2" {
     ami           = "ami-0c7217cdde317cfec"  # Amazon Linux 2023 AMI in us-east-1
     instance_type = "t2.micro"
-    subnet_id     = aws_subnet.moveo_private_subnet.id
+    subnet_id     = aws_subnet.moveo_public_subnet.id
     vpc_security_group_ids = [aws_security_group.moveo_ec2_security_group.id]
     iam_instance_profile = aws_iam_instance_profile.moveo_ec2_profile.name
+    key_name      = aws_key_pair.terraform-lab.key_name
 
     # User data script to install Docker and run Nginx
     user_data = <<-EOF
@@ -104,4 +105,10 @@ resource "aws_instance" "moveo_ec2" {
         aws_security_group.moveo_ec2_security_group,
         aws_security_group.moveo_alb_security_group
     ]
+}
+
+# Add an output for the EC2 instance public IP
+output "ec2_public_ip" {
+    description = "The public IP address of the EC2 instance"
+    value       = aws_instance.moveo_ec2.public_ip
 } 
