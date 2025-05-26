@@ -4,15 +4,6 @@ resource "aws_security_group" "moveo_nat_security_group" {
     description = "Security group for NAT instance"
     vpc_id      = aws_vpc.moveo_vpc.id
 
-    # Allow inbound SSH from your IP
-    ingress {
-        from_port   = 22
-        to_port     = 22
-        protocol    = "tcp"
-        cidr_blocks = ["0.0.0.0/0"]  # Note: For production, you should restrict this to your specific IP
-        description = "Allow SSH access"
-    }
-
     # Allow inbound HTTP from private subnets
     ingress {
         from_port   = 80
