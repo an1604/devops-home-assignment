@@ -4,9 +4,16 @@ resource "aws_security_group" "moveo_alb_security_group" {
     description = "Security group for Application Load Balancer"
     vpc_id      = aws_vpc.moveo_vpc.id
 
-    # Allow inbound HTTP from anywhere
-    # This is a high severity security issue, but the nginx server 
-    # is only communicating over http.
+    # Allow inbound HTTPS from anywhere (needed for public web access)
+    ingress {
+        from_port   = 443
+        to_port     = 443
+        protocol    = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]  
+        description = "Allow HTTPS from anywhere (public web access)"
+    }
+
+    # Allow inbound HTTP from anywhere (needed for public web access)
     ingress {
         from_port   = 80
         to_port     = 80
