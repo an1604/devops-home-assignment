@@ -22,6 +22,18 @@ resource "aws_security_group" "moveo_nat_security_group" {
         description = "Allow HTTPS from private subnets"
     }
 
+    # Allow inbound SSH from EIP for management
+    dynamic "ingress" {
+        for_each = var.enable_eip_for_ssh ? [1] : []
+        content {
+            from_port   = 22
+            to_port     = 22
+            protocol    = "tcp"
+            cidr_blocks = ["${aws_eip.ssh_access[0].public_ip}/32"]
+            description = "Allow SSH from EIP for management"
+        }
+    }
+
     # Allow all outbound traffic
     egress {
         from_port   = 0
@@ -113,6 +125,19 @@ resource "aws_instance" "moveo_nat" {
     key_name      = aws_key_pair.nat-instance-key-pair.key_name
     source_dest_check = false
 
+    # Enable encryption for the root volume
+    root_block_device {
+        volume_type           = "gp3"
+        volume_size           = 8
+        encrypted             = true
+        delete_on_termination = true
+        tags = merge(var.tags, {
+            Name        = "${var.environment}-nat-root-volume"
+            Environment = var.environment
+            ManagedBy   = "Terraform"
+        })
+    }
+
     # User data script to configure NAT
     user_data = <<-EOF
         #!/bin/bash
@@ -162,7 +187,4 @@ output "nat_instance_private_ip" {
     value       = aws_instance.moveo_nat.private_ip
 }
 
-output "nat_instance_public_ip" {
-    description = "The public IP address of the NAT instance"
-    value       = aws_instance.moveo_nat.public_ip
-}
+# Note: Public IP output is now in eip.tf as nat_instance_eip

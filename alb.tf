@@ -5,6 +5,8 @@ resource "aws_security_group" "moveo_alb_security_group" {
     vpc_id      = aws_vpc.moveo_vpc.id
 
     # Allow inbound HTTP from anywhere
+    # This is a high severity security issue, but the nginx server 
+    # is only communicating over http.
     ingress {
         from_port   = 80
         to_port     = 80

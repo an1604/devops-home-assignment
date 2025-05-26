@@ -4,13 +4,28 @@ resource "aws_security_group" "moveo_ec2_security_group" {
     description = "Security group for EC2 instance in private subnet"
     vpc_id      = aws_vpc.moveo_vpc.id
 
-    # Allow inbound SSH from anywhere
-    ingress {
-        from_port   = 22
-        to_port     = 22
-        protocol    = "tcp"
-        cidr_blocks = ["0.0.0.0/0"]
-        description = "Allow SSH from anywhere"
+    # Allow inbound SSH based on configuration
+    dynamic "ingress" {
+        for_each = var.enable_eip_for_ssh ? [] : [1]
+        content {
+            from_port   = 22
+            to_port     = 22
+            protocol    = "tcp"
+            cidr_blocks = [var.allowed_ssh_cidr]
+            description = "Allow SSH from specified CIDR"
+        }
+    }
+
+    # Allow inbound SSH from EIP when enabled
+    dynamic "ingress" {
+        for_each = var.enable_eip_for_ssh ? [1] : []
+        content {
+            from_port   = 22
+            to_port     = 22
+            protocol    = "tcp"
+            cidr_blocks = ["${aws_eip.ssh_access[0].public_ip}/32"]
+            description = "Allow SSH from EIP"
+        }
     }
 
     # Allow inbound HTTP from ALB only
@@ -126,6 +141,19 @@ resource "aws_instance" "moveo_ec2" {
     vpc_security_group_ids = [aws_security_group.moveo_ec2_security_group.id]
     iam_instance_profile = aws_iam_instance_profile.moveo_ec2_profile.name
     key_name      = aws_key_pair.terraform-lab.key_name
+
+    # Enable encryption for the root volume
+    root_block_device {
+        volume_type           = "gp3"
+        volume_size           = 8
+        encrypted             = true
+        delete_on_termination = true
+        tags = merge(var.tags, {
+            Name        = "${var.environment}-ec2-root-volume"
+            Environment = var.environment
+            ManagedBy   = "Terraform"
+        })
+    }
 
     # User data script to install Docker and run Nginx
     user_data = <<-EOF
