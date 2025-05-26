@@ -30,10 +30,10 @@ variable "private_subnet_cidr" {
   default     = "10.0.2.0/24"
 }
 
-variable "availability_zone" {
-  description = "Availability zone for the subnets"
-  type        = string
-  default     = "us-east-1a"
+variable "availability_zones" {
+  description = "List of availability zones for the subnets"
+  type        = list(string)
+  default     = ["us-east-1a", "us-east-1b"]
 }
 
 variable "health_check_path" {

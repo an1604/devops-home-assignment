@@ -34,7 +34,7 @@ resource "aws_lb" "moveo_alb" {
     internal           = false
     load_balancer_type = "application"
     security_groups    = [aws_security_group.moveo_alb_security_group.id]
-    subnets            = [aws_subnet.moveo_public_subnet.id]
+    subnets            = aws_subnet.moveo_public_subnet[*].id
 
     tags = merge(var.tags, {
         Name        = "${var.environment}-alb"
