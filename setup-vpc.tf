@@ -4,13 +4,13 @@ resource "aws_vpc" "moveo_vpc" {
     enable_dns_hostnames = true
     enable_dns_support   = true
     
-    tags = {
+    tags = merge(var.tags, {
         Name        = "${var.environment}-vpc"
         Environment = var.environment
         ManagedBy   = "Terraform"
         Security    = "High"
         Purpose     = "Production"
-    }
+    })
 }
 
 data "aws_region" "current" {}

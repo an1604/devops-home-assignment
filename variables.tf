@@ -1,9 +1,17 @@
+# AWS Configuration
 variable "aws_region" {
   description = "AWS region to deploy resources"
   type        = string
   default     = "us-east-1"
 }
 
+variable "aws_profile" {
+  description = "AWS profile name"
+  type        = string
+  default     = "default"
+}
+
+# Network Configuration
 variable "vpc_cidr" {
   description = "CIDR block for the VPC"
   type        = string
@@ -28,6 +36,39 @@ variable "availability_zone" {
   default     = "us-east-1a"
 }
 
+variable "health_check_path" {
+  description = "Health check path for the default target group"
+  type        = string
+  default     = "/"
+}
+
+# EC2 Configuration
+variable "ec2_instance_type" {
+  description = "Instance type for the EC2 instance"
+  type        = string
+  default     = "t2.micro"
+}
+
+variable "ec2_instance_name" {
+  description = "Name of the EC2 instance"
+  type        = string
+  default     = "moveo-ec2"
+}
+
+variable "ssh_pubkey_file" {
+  description = "Path to the SSH public key file"
+  type        = string
+  default     = "~/.ssh/id_rsa.pub"
+}
+
+variable "alb_name" {
+  description = "Name of the ALB"
+  type        = string
+  default     = "moveo-alb"
+}
+
+
+# Environment & Tagging
 variable "environment" {
   description = "Environment name for tagging"
   type        = string
@@ -43,8 +84,4 @@ variable "tags" {
   }
 }
 
-variable "aws_profile" {
-  description = "AWS profile name"
-  type        = string
-  default     = "default"
-}
+

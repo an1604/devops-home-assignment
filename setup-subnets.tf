@@ -5,12 +5,12 @@ resource "aws_subnet" "moveo_public_subnet" {
     map_public_ip_on_launch = true
     availability_zone = var.availability_zone
 
-    tags = {
+    tags = merge(var.tags, {
         Name = "${var.environment}-public-subnet"
         Environment = var.environment
         ManagedBy = "Terraform"
         Purpose = "Public"
-    }
+    })
 }
 
 # Private Subnet
@@ -20,12 +20,12 @@ resource "aws_subnet" "moveo_private_subnet" {
     map_public_ip_on_launch = false
     availability_zone = var.availability_zone
 
-    tags = {
+    tags = merge(var.tags, {
         Name = "${var.environment}-private-subnet"
         Environment = var.environment
         ManagedBy = "Terraform"
         Purpose = "Private"
-    }
+    })
 }
 
 
