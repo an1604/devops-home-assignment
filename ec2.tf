@@ -24,11 +24,11 @@ resource "aws_security_group" "moveo_ec2_security_group" {
 
     # Allow outbound traffic only to ALB
     egress {
-        from_port       = 80
-        to_port         = 80
-        protocol        = "tcp"
-        security_groups = [aws_security_group.moveo_alb_security_group.id]
-        description     = "Allow outbound HTTP to ALB only"
+        from_port   = 0
+        to_port     = 0
+        protocol    = "-1"
+        cidr_blocks = ["0.0.0.0/0"]
+        description = "Allow all outbound traffic through NAT"
     }
 
     tags = merge(var.tags, {
@@ -67,11 +67,62 @@ resource "aws_iam_instance_profile" "moveo_ec2_profile" {
     role = aws_iam_role.moveo_ec2_role.name
 }
 
+# IAM Policy Document for EC2
+data "aws_iam_policy_document" "moveo_ec2_policy_doc" {
+    statement {
+        actions = [
+            "ec2:*",
+            "elasticloadbalancing:*",
+            "cloudwatch:*",
+            "autoscaling:*"
+        ]
+        effect    = "Allow"
+        resources = ["*"]
+    }
+
+    statement {
+        actions = ["iam:CreateServiceLinkedRole"]
+        effect  = "Allow"
+        resources = ["*"]
+        condition {
+            test     = "StringEquals"
+            variable = "iam:AWSServiceName"
+            values = [
+                "autoscaling.amazonaws.com",
+                "ec2scheduled.amazonaws.com",
+                "elasticloadbalancing.amazonaws.com",
+                "spot.amazonaws.com",
+                "spotfleet.amazonaws.com",
+                "transitgateway.amazonaws.com"
+            ]
+        }
+    }
+}
+
+# IAM Policy
+resource "aws_iam_policy" "moveo_ec2_policy" {
+    name        = "${var.environment}-ec2-policy"
+    description = "Policy for EC2 instance to access AWS services"
+    policy      = data.aws_iam_policy_document.moveo_ec2_policy_doc.json
+
+    tags = merge(var.tags, {
+        Name        = "${var.environment}-ec2-policy"
+        Environment = var.environment
+        ManagedBy   = "Terraform"
+    })
+}
+
+# Attach Policy to Role
+resource "aws_iam_role_policy_attachment" "moveo_ec2_policy_attachment" {
+    role       = aws_iam_role.moveo_ec2_role.name
+    policy_arn = aws_iam_policy.moveo_ec2_policy.arn
+}
+
 # EC2 Instance
 resource "aws_instance" "moveo_ec2" {
     ami           = "ami-0c7217cdde317cfec"  # Amazon Linux 2023 AMI in us-east-1
     instance_type = "t2.micro"
-    subnet_id     = aws_subnet.moveo_public_subnet[0].id  # Using the first public subnet
+    subnet_id     = aws_subnet.moveo_private_subnet[0].id  # Using the first private subnet
     vpc_security_group_ids = [aws_security_group.moveo_ec2_security_group.id]
     iam_instance_profile = aws_iam_instance_profile.moveo_ec2_profile.name
     key_name      = aws_key_pair.terraform-lab.key_name
@@ -79,13 +130,12 @@ resource "aws_instance" "moveo_ec2" {
     # User data script to install Docker and run Nginx
     user_data = <<-EOF
         #!/bin/bash
-        yum update -y
+        sudo apt update 
+        sudo apt install -y docker.io
+        sudo systemctl start docker
+        sudo systemctl enable docker
         
-        yum install -y docker
-        systemctl start docker
-        systemctl enable docker
-        
-        docker run -d \
+        sudo docker run -d \
             --name nginx \
             -p 80:80 \
             -e NGINX_HOST=localhost \
@@ -103,7 +153,8 @@ resource "aws_instance" "moveo_ec2" {
 
     depends_on = [
         aws_security_group.moveo_ec2_security_group,
-        aws_security_group.moveo_alb_security_group
+        aws_security_group.moveo_alb_security_group,
+        aws_key_pair.terraform-lab
     ]
 }
 
@@ -111,4 +162,9 @@ resource "aws_instance" "moveo_ec2" {
 output "ec2_public_ip" {
     description = "The public IP address of the EC2 instance"
     value       = aws_instance.moveo_ec2.public_ip
+}
+
+output "ec2_private_ip" {
+    description = "The private IP address of the EC2 instance"
+    value       = aws_instance.moveo_ec2.private_ip
 } 

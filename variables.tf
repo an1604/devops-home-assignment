@@ -58,8 +58,15 @@ variable "ec2_instance_name" {
 variable "ssh_pubkey_file" {
   description = "Path to the SSH public key file"
   type        = string
-  default     = "C:/ssh_keys/moveo_key.pub"
+  default     = "C:/ssh_keys/moveo_key_new.pub"
 }
+
+variable "ssh_pubkey_file_nat_instance" {
+  description = "Path to the SSH public key file for the NAT instance"
+  type        = string
+  default     = "C:/ssh_keys/moveo_key_new_nat.pub"
+}
+
 
 variable "alb_name" {
   description = "Name of the ALB"
