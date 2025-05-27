@@ -16,17 +16,6 @@ resource "aws_security_group" "moveo_ec2_security_group" {
         }
     }
 
-    # Allow inbound SSH from EIP when enabled
-    dynamic "ingress" {
-        for_each = var.enable_eip_for_ssh ? [1] : []
-        content {
-            from_port   = 22
-            to_port     = 22
-            protocol    = "tcp"
-            cidr_blocks = ["${aws_eip.ssh_access[0].public_ip}/32"]
-            description = "Allow SSH from EIP"
-        }
-    }
 
     # Allow inbound HTTP from ALB only
     ingress {
@@ -39,11 +28,28 @@ resource "aws_security_group" "moveo_ec2_security_group" {
 
     # Allow outbound traffic only to ALB
     egress {
-        from_port   = 0
-        to_port     = 0
-        protocol    = "-1"
-        cidr_blocks = ["0.0.0.0/0"]
-        description = "Allow all outbound traffic through NAT"
+        from_port       = 80
+        to_port         = 80
+        protocol        = "tcp"
+        security_groups = [aws_security_group.moveo_nat_security_group.id]
+        description     = "Allow outbound HTTP traffic to NAT instance"
+    }
+
+    egress {
+        from_port       = 443
+        to_port         = 443
+        protocol        = "tcp"
+        security_groups = [aws_security_group.moveo_nat_security_group.id]
+        description     = "Allow outbound HTTPS traffic to NAT instance"
+    }
+
+    # Allow outbound traffic only to ALB
+    egress {
+        from_port       = 80
+        to_port         = 80
+        protocol        = "tcp"
+        security_groups = [aws_security_group.moveo_alb_security_group.id]
+        description     = "Allow outbound HTTP traffic to ALB"
     }
 
     tags = merge(var.tags, {
