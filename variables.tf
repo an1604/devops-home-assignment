@@ -91,4 +91,17 @@ variable "tags" {
   }
 }
 
+# Security Configuration
+variable "enable_eip_for_ssh" {
+  description = "Whether to allocate an Elastic IP for SSH access"
+  type        = bool
+  default     = true
+}
+
+variable "allowed_ssh_cidr" {
+  description = "CIDR block allowed for SSH access. Only used if enable_eip_for_ssh is false"
+  type        = string
+  default     = null  # will be overridden by EIP if enable_eip_for_ssh is true
+}
+
 
