@@ -1,0 +1,113 @@
+name: Deploy Infrastructure
+
+on:
+  push:
+    branches:
+      - main
+      - new-bonus-section
+  workflow_dispatch:
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  TF_VAR_environment: ${{ secrets.TF_VAR_environment }}
+
+jobs:
+  validate:
+    name: Validate Terraform Configuration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH Keys
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/moveo_key_new
+          echo "${{ secrets.SSH_PRIVATE_KEY_NAT }}" | tr -d '\r' > ~/.ssh/moveo_key_new_nat
+          chmod 600 ~/.ssh/moveo_key_new
+          chmod 600 ~/.ssh/moveo_key_new_nat
+          
+          echo "Generating public keys..."
+          ssh-keygen -y -f ~/.ssh/moveo_key_new > ~/.ssh/moveo_key_new.pub
+          ssh-keygen -y -f ~/.ssh/moveo_key_new_nat > ~/.ssh/moveo_key_new_nat.pub
+          
+          echo "Key fingerprints:"
+          ssh-keygen -l -f ~/.ssh/moveo_key_new.pub
+          ssh-keygen -l -f ~/.ssh/moveo_key_new_nat.pub
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.7.0"
+
+      - name: Fix Terraform Permissions
+        run: |
+          echo "TERRAFORM_CLI_PATH: $TERRAFORM_CLI_PATH"
+          chmod +x "$TERRAFORM_CLI_PATH/terraform"
+          ls -l "$TERRAFORM_CLI_PATH/terraform"
+
+      - name: Terraform Init
+        run: terraform init
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        run: terraform plan
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+  deploy:
+    name: Deploy Infrastructure
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.7.0"
+
+      - name: Terraform Init
+        run: terraform init
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+
+      - name: Get ALB DNS
+        id: alb-dns
+        run: |
+          ALB_DNS=$(terraform output -raw alb_dns_name)
+          echo "alb_dns=$ALB_DNS" >> $GITHUB_OUTPUT
+
+      - name: Create Deployment Summary
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "Infrastructure deployed successfully" >> $GITHUB_STEP_SUMMARY
+          echo "ALB DNS: ${{ steps.alb-dns.outputs.alb_dns }}" >> $GITHUB_STEP_SUMMARY
+
+  notify:
+    name: Post-Deployment Notification
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Deployment Comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const albDns = '${{ needs.deploy.outputs.alb_dns }}';
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `Deployment completed successfully!\n\n Application is available at: ${albDns}`
+            }); 
