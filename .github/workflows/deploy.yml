@@ -118,7 +118,7 @@ jobs:
           ALB_DNS=$(terraform output -raw alb_dns_name)
           echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
           echo "Infrastructure deployed successfully" >> $GITHUB_STEP_SUMMARY
-          echo "ALB DNS: moveo-${ALB_DNS}" >> $GITHUB_STEP_SUMMARY
+          echo "ALB DNS: $ALB_DNS" >> $GITHUB_STEP_SUMMARY
 
       - name: Create Deployment Comment
         if: github.event_name == 'pull_request' || github.event_name == 'issues'
