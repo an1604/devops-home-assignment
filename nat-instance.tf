@@ -94,6 +94,17 @@ data "aws_iam_policy_document" "moveo_nat_policy_doc" {
         effect    = "Allow"
         resources = ["*"]
     }
+
+    statement {
+        actions = [
+            "secretsmanager:GetSecretValue"
+        ]
+        effect    = "Allow"
+        resources = [
+            aws_secretsmanager_secret.ec2_ssh_public_key.arn,
+            aws_secretsmanager_secret.nat_ssh_public_key.arn
+        ]
+    }
 }
 
 # IAM Policy for NAT Instance

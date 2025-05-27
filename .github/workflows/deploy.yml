@@ -21,22 +21,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup SSH Keys
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/moveo_key_new
-          echo "${{ secrets.SSH_PRIVATE_KEY_NAT }}" | tr -d '\r' > ~/.ssh/moveo_key_new_nat
-          chmod 600 ~/.ssh/moveo_key_new
-          chmod 600 ~/.ssh/moveo_key_new_nat
-          
-          echo "Generating public keys..."
-          ssh-keygen -y -f ~/.ssh/moveo_key_new > ~/.ssh/moveo_key_new.pub
-          ssh-keygen -y -f ~/.ssh/moveo_key_new_nat > ~/.ssh/moveo_key_new_nat.pub
-          
-          echo "Key fingerprints:"
-          ssh-keygen -l -f ~/.ssh/moveo_key_new.pub
-          ssh-keygen -l -f ~/.ssh/moveo_key_new_nat.pub
-
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:

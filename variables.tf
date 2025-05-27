@@ -58,22 +58,20 @@ variable "ec2_instance_name" {
 variable "ssh_pubkey_file" {
   description = "Path to the SSH public key file"
   type        = string
-  default     = "C:/ssh_keys/moveo_key_new.pub"
+  default     = "ssh_keys/moveo_key_new.pub"
 }
 
 variable "ssh_pubkey_file_nat_instance" {
   description = "Path to the SSH public key file for the NAT instance"
   type        = string
-  default     = "C:/ssh_keys/moveo_key_new_nat.pub"
+  default     = "ssh_keys/moveo_key_new_nat.pub"
 }
-
 
 variable "alb_name" {
   description = "Name of the ALB"
   type        = string
   default     = "moveo-alb"
 }
-
 
 # Environment & Tagging
 variable "environment" {
@@ -102,6 +100,18 @@ variable "allowed_ssh_cidr" {
   description = "CIDR block allowed for SSH access. Only used if enable_eip_for_ssh is false"
   type        = string
   default     = null  # will be overridden by EIP if enable_eip_for_ssh is true
+}
+
+variable "ssh_public_key_value" {
+  description = "The SSH public key value for EC2 instance"
+  type        = string
+  sensitive   = true
+}
+
+variable "ssh_public_key_nat_value" {
+  description = "The SSH public key value for NAT instance"
+  type        = string
+  sensitive   = true
 }
 
 
