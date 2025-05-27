@@ -33,23 +33,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Get SSH Keys from AWS Secrets Manager
-        id: get-ssh-keys
-        run: |
-          # Get EC2 SSH public key
-          EC2_KEY=$(aws secretsmanager get-secret-value \
-            --secret-id "$TF_VAR_environment/ec2-ssh-public-key" \
-            --query 'SecretString' \
-            --output text)
-          echo "TF_VAR_ssh_public_key_value=$EC2_KEY" >> $GITHUB_ENV
-          
-          # Get NAT SSH public key
-          NAT_KEY=$(aws secretsmanager get-secret-value \
-            --secret-id "$TF_VAR_environment/nat-ssh-public-key" \
-            --query 'SecretString' \
-            --output text)
-          echo "TF_VAR_ssh_public_key_nat_value=$NAT_KEY" >> $GITHUB_ENV
-
       - name: Terraform Init
         run: terraform init
 
@@ -78,23 +61,6 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Get SSH Keys from AWS Secrets Manager
-        id: get-ssh-keys
-        run: |
-          # Get EC2 SSH public key
-          EC2_KEY=$(aws secretsmanager get-secret-value \
-            --secret-id "$TF_VAR_environment/ec2-ssh-public-key" \
-            --query 'SecretString' \
-            --output text)
-          echo "TF_VAR_ssh_public_key_value=$EC2_KEY" >> $GITHUB_ENV
-          
-          # Get NAT SSH public key
-          NAT_KEY=$(aws secretsmanager get-secret-value \
-            --secret-id "$TF_VAR_environment/nat-ssh-public-key" \
-            --query 'SecretString' \
-            --output text)
-          echo "TF_VAR_ssh_public_key_nat_value=$NAT_KEY" >> $GITHUB_ENV
 
       - name: Terraform Init
         run: terraform init
