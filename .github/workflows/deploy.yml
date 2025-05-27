@@ -73,14 +73,6 @@ jobs:
         run: |
           ALB_DNS=$(terraform output -raw alb_dns_name)
           echo "alb_dns=$ALB_DNS" >> $GITHUB_OUTPUT
-
-      - name: Create Deployment Summary
-        run: |
-          ALB_DNS=$(terraform output -raw alb_dns_name)
-          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
-          echo "Infrastructure deployed successfully" >> $GITHUB_STEP_SUMMARY
-          echo "ALB DNS: $ALB_DNS" >> $GITHUB_STEP_SUMMARY
-
     outputs:
       alb_dns: ${{ steps.alb-dns.outputs.alb_dns }}
 
