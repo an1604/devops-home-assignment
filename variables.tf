@@ -102,16 +102,4 @@ variable "allowed_ssh_cidr" {
   default     = null  # will be overridden by EIP if enable_eip_for_ssh is true
 }
 
-variable "ssh_public_key_value" {
-  description = "The SSH public key value for EC2 instance"
-  type        = string
-  sensitive   = true
-}
-
-variable "ssh_public_key_nat_value" {
-  description = "The SSH public key value for NAT instance"
-  type        = string
-  sensitive   = true
-}
-
 
