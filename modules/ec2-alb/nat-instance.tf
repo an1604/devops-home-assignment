@@ -2,7 +2,7 @@
 resource "aws_security_group" "moveo_nat_security_group" {
     name        = "${var.environment}-nat-security-group"
     description = "Security group for NAT instance"
-    vpc_id      = aws_vpc.moveo_vpc.id
+    vpc_id      = var.vpc_id
 
     # Allow inbound HTTP from private subnets
     ingress {
@@ -130,7 +130,7 @@ resource "aws_iam_role_policy_attachment" "moveo_nat_policy_attachment" {
 resource "aws_instance" "moveo_nat" {
     ami           = "ami-0c7217cdde317cfec"  # Amazon Linux 2023 AMI in us-east-1
     instance_type = "t2.micro"
-    subnet_id     = aws_subnet.moveo_public_subnet[0].id  # Must be in public subnet
+    subnet_id     = var.public_subnet_ids[0]  # Must be in public subnet
     vpc_security_group_ids = [aws_security_group.moveo_nat_security_group.id]
     iam_instance_profile = aws_iam_instance_profile.moveo_nat_profile.name
     key_name      = aws_key_pair.nat-instance-key-pair.key_name
@@ -182,20 +182,8 @@ resource "aws_instance" "moveo_nat" {
 # Route table entry for private subnets to use NAT instance
 resource "aws_route" "private_nat_route" {
     count                  = length(var.availability_zones)
-    route_table_id         = aws_route_table.moveo_private_rt.id
+    route_table_id         = var.private_route_table_id
     destination_cidr_block = "0.0.0.0/0"
     network_interface_id   = aws_instance.moveo_nat.primary_network_interface_id
 }
 
-# Add outputs for the NAT instance
-output "nat_instance_id" {
-    description = "The ID of the NAT instance"
-    value       = aws_instance.moveo_nat.id
-}
-
-output "nat_instance_private_ip" {
-    description = "The private IP address of the NAT instance"
-    value       = aws_instance.moveo_nat.private_ip
-}
-
-# Note: Public IP output is now in eip.tf as nat_instance_eip

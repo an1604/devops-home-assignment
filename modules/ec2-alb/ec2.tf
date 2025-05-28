@@ -2,7 +2,7 @@
 resource "aws_security_group" "moveo_ec2_security_group" {
     name        = "${var.environment}-ec2-security-group"
     description = "Security group for EC2 instance in private subnet"
-    vpc_id      = aws_vpc.moveo_vpc.id
+    vpc_id      = var.vpc_id
 
     # Allow inbound SSH based on configuration
     dynamic "ingress" {
@@ -154,7 +154,7 @@ resource "aws_iam_role_policy_attachment" "moveo_ec2_policy_attachment" {
 resource "aws_instance" "moveo_ec2" {
     ami           = "ami-0c7217cdde317cfec"  # Amazon Linux 2023 AMI in us-east-1
     instance_type = "t2.micro"
-    subnet_id     = aws_subnet.moveo_private_subnet[0].id  # Using the first private subnet
+    subnet_id     = var.private_subnet_ids[0]  # Using the first private subnet
     vpc_security_group_ids = [aws_security_group.moveo_ec2_security_group.id]
     iam_instance_profile = aws_iam_instance_profile.moveo_ec2_profile.name
     key_name      = aws_key_pair.terraform-lab.key_name
@@ -202,14 +202,3 @@ resource "aws_instance" "moveo_ec2" {
         aws_key_pair.terraform-lab
     ]
 }
-
-# Add an output for the EC2 instance public IP
-output "ec2_public_ip" {
-    description = "The public IP address of the EC2 instance"
-    value       = aws_instance.moveo_ec2.public_ip
-}
-
-output "ec2_private_ip" {
-    description = "The private IP address of the EC2 instance"
-    value       = aws_instance.moveo_ec2.private_ip
-} 
