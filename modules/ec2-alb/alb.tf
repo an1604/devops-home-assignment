@@ -2,7 +2,7 @@
 resource "aws_security_group" "moveo_alb_security_group" {
     name        = "${var.environment}-alb-security-group"
     description = "Security group for Application Load Balancer"
-    vpc_id      = aws_vpc.moveo_vpc.id
+    vpc_id      = var.vpc_id
 
     # Allow inbound HTTPS from anywhere (needed for public web access)
     ingress {
@@ -43,7 +43,7 @@ resource "aws_lb" "moveo_alb" {
     internal           = false
     load_balancer_type = "application"
     security_groups    = [aws_security_group.moveo_alb_security_group.id]
-    subnets            = aws_subnet.moveo_public_subnet[*].id
+    subnets            = var.public_subnet_ids
 
     tags = merge(var.tags, {
         Name        = "${var.environment}-alb"
@@ -57,7 +57,7 @@ resource "aws_lb_target_group" "moveo_target_group" {
     name     = "${var.environment}-target-group"
     port     = 80
     protocol = "HTTP"
-    vpc_id   = aws_vpc.moveo_vpc.id
+    vpc_id   = var.vpc_id
 
     health_check {
         path                = "/"
@@ -94,8 +94,3 @@ resource "aws_lb_listener" "moveo_listener" {
     }
 }
 
-# Output the ALB DNS name
-output "alb_dns_name" {
-    description = "The DNS name of the load balancer"
-    value       = aws_lb.moveo_alb.dns_name
-} 
