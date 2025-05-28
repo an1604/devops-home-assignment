@@ -24,13 +24,3 @@ resource "aws_eip" "nat_instance" {
     })
 }
 
-# Outputs for EIPs
-output "ssh_access_eip" {
-    description = "The Elastic IP address for SSH access"
-    value       = var.enable_eip_for_ssh ? aws_eip.ssh_access[0].public_ip : "EIP not enabled"
-}
-
-output "nat_instance_eip" {
-    description = "The Elastic IP address of the NAT instance"
-    value       = aws_eip.nat_instance.public_ip
-} 
