@@ -157,7 +157,7 @@ resource "aws_instance" "moveo_ec2" {
     subnet_id     = var.private_subnet_ids[0]  # Using the first private subnet
     vpc_security_group_ids = [aws_security_group.moveo_ec2_security_group.id]
     iam_instance_profile = aws_iam_instance_profile.moveo_ec2_profile.name
-    key_name      = aws_key_pair.terraform-lab.key_name
+    key_name      = var.ec2_key_name
 
     # Enable encryption for the root volume
     root_block_device {
@@ -198,7 +198,6 @@ resource "aws_instance" "moveo_ec2" {
 
     depends_on = [
         aws_security_group.moveo_ec2_security_group,
-        aws_security_group.moveo_alb_security_group,
-        aws_key_pair.terraform-lab
+        aws_security_group.moveo_alb_security_group
     ]
 }

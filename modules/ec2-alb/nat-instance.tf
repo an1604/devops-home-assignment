@@ -133,7 +133,7 @@ resource "aws_instance" "moveo_nat" {
     subnet_id     = var.public_subnet_ids[0]  # Must be in public subnet
     vpc_security_group_ids = [aws_security_group.moveo_nat_security_group.id]
     iam_instance_profile = aws_iam_instance_profile.moveo_nat_profile.name
-    key_name      = aws_key_pair.nat-instance-key-pair.key_name
+    key_name      = var.nat_key_name
     source_dest_check = false
 
     # Enable encryption for the root volume
@@ -174,8 +174,7 @@ resource "aws_instance" "moveo_nat" {
     })
 
     depends_on = [
-        aws_security_group.moveo_nat_security_group,
-        aws_key_pair.nat-instance-key-pair
+        aws_security_group.moveo_nat_security_group
     ]
 }
 

@@ -67,13 +67,21 @@ variable "ssh_pubkey_file_nat_instance" {
   default     = "C:/ssh_keys/moveo_key_new_nat.pub"
 }
 
+variable "ec2_key_name" {
+  description = "The EC2 SSH key pair name to use for the application instance."
+  type        = string
+}
+
+variable "nat_key_name" {
+  description = "The EC2 SSH key pair name to use for the NAT instance."
+  type        = string
+}
 
 variable "alb_name" {
   description = "Name of the ALB"
   type        = string
   default     = "moveo-alb"
 }
-
 
 # Environment & Tagging
 variable "environment" {
