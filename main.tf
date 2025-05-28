@@ -21,4 +21,18 @@ module "ec2-alb" {
     allowed_ssh_cidr = var.allowed_ssh_cidr
     environment = var.environment
     tags = var.tags
+    ec2_key_name = "${var.environment}_new_key_pair"
+    nat_key_name = "${var.environment}_nat_instance_key_pair"
 }
+
+# Configure Terraform backend
+terraform {
+  backend "s3" {
+    bucket         = "moveo-terraform-state-2024"
+    key            = "terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "terraform-state-lock"
+    encrypt        = true
+  }
+}
+
