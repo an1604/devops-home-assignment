@@ -14,13 +14,3 @@ data "aws_secretsmanager_secret" "nat_ssh_public_key" {
 data "aws_secretsmanager_secret_version" "nat_ssh_public_key" {
   secret_id = data.aws_secretsmanager_secret.nat_ssh_public_key.id
 }
-
-resource "aws_key_pair" "terraform-lab" {
-  key_name   = "${var.environment}_new_key_pair"
-  public_key = data.aws_secretsmanager_secret_version.ec2_ssh_public_key.secret_string
-}
-
-resource "aws_key_pair" "nat-instance-key-pair" {
-  key_name   = "${var.environment}_nat_instance_key_pair"
-  public_key = data.aws_secretsmanager_secret_version.nat_ssh_public_key.secret_string
-}
