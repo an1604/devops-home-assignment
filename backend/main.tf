@@ -1,10 +1,10 @@
 provider "aws" {
-  region = "us-east-1"  # or your preferred region
+  region = "us-east-1"  
 }
 
 # Create S3 bucket for Terraform state
 resource "aws_s3_bucket" "terraform_state" {
-  bucket = "moveo-terraform-state-2024"  # Choose a unique name
+  bucket = "moveo-terraform-state-2024"  
 
   lifecycle {
     prevent_destroy = true
